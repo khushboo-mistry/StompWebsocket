@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Live Monitor</title>
+
+	<!-- SockJS -->
+	<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+
+	<!-- Modern STOMP -->
+	<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<style>
+	* {
+		box-sizing: border-box;
+	}
+
+	body {
+		margin: 0;
+		height: 100vh;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background: linear-gradient(135deg, #667eea, #764ba2);
+		font-family: 'Poppins', sans-serif;
+	}
+
+	.card {
+		background: #ffffff;
+		padding: 40px;
+		width: 450px;
+		border-radius: 18px;
+		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		text-align: center;
+	}
+
+	h2 {
+		margin: 0;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.label {
+		font-weight: 500;
+		color: #555;
+		font-size: 14px;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+	}
+
+	.value-box {
+		background: #f4f6fb;
+		padding: 15px;
+		border-radius: 12px;
+		font-size: 16px;
+		color: #333;
+		word-break: break-word;
+		animation: fadeIn 0.3s ease-in-out;
+	}
+
+	.time-box {
+		background: linear-gradient(135deg, #667eea, #764ba2);
+		color: white;
+		padding: 12px;
+		border-radius: 12px;
+		font-size: 14px;
+	}
+
+	.status {
+		display: inline-block;
+		padding: 6px 12px;
+		border-radius: 20px;
+		font-size: 12px;
+		font-weight: 500;
+		background: #e6f4ea;
+		color: #2e7d32;
+		align-self: center;
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(5px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+</style>
+
+<body>
+
+	<div class="card">
+		<h2>Live Message Monitor</h2>
+
+		<span class="status">● Connected</span>
+
+		<div>
+			<div class="label">Latest Message</div>
+			<div class="value-box" id="latestMessage">Waiting for message...</div>
+		</div>
+
+		<div>
+			<div class="label">Received At</div>
+			<div class="time-box" id="receivedTime">--</div>
+		</div>
+	</div>
+
+	<script>
+		// SCRIPT UNTOUCHED
+
+		const socket = new SockJS('/ws');
+
+		const stompClient = new StompJs.Client({
+			webSocketFactory: () => socket,
+			reconnectDelay: 5000,
+			debug: function (str) {
+				console.log(str);
+			},
+
+			onConnect: function () {
+				console.log("Monitor Connected");
+
+				stompClient.subscribe('/topic/messages', function (message) {
+
+					const now = new Date();
+					const formattedTime = now.toLocaleString();
+
+					document.getElementById("latestMessage").innerText = message.body;
+					document.getElementById("receivedTime").innerText = formattedTime;
+
+					console.log("Updated UI with:", message.body);
+				});
+			}
+		});
+
+		stompClient.activate();
+	</script>
+
+</body>
+
+</html>
